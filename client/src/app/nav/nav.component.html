@@ -1,6 +1,8 @@
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="#">Meet & Date</a>
+    <a class="navbar-brand" href="#">
+        <img src="../../assets/logo.PNG" alt="..." height="36">
+        Meet & Date</a>
     <button
       class="navbar-toggler"
       type="button"
@@ -26,7 +28,7 @@
           
       </ul>
       <div class="dropdown" *ngIf="accountService.currentUser$| async" dropdown>
-            <a class="dropdown-toggle text-light" dropdownToggle>Welcome User</a>
+            <a class="dropdown-toggle text-light" dropdownToggle>Welcome {{(accountService.currentUser$| async).username}}</a>
             <div class="dropdown-menu mt-3" *dropdownMenu>
                 <a class="dropdown-item">Edit Profile</a>
                 <li class="divider dropdown-divider"></li>
