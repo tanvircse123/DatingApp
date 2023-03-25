@@ -10,9 +10,7 @@ import { ReplaySubject } from 'rxjs';
 export class AccountService {
   baseUrl = "https://localhost:7266/api/";
   loginUrl = "Account/login";
-
-
-
+  registerUrl = "Account/register";
 
   // explanation
   // what is observable
@@ -26,16 +24,12 @@ export class AccountService {
     to get the data this observable will give the last value
     in this case the last 1 value
   */
+
+ // setting up just 1 space for the user and then make it observable
   private currentUserSource = new ReplaySubject<User>(1);
-  currentUser$ = this.currentUserSource.asObservable();
-  
-  
-  
-  
-  
-  
+  currentUser$ = this.currentUserSource.asObservable();  
   // constructor injection
-  constructor(private http :HttpClient) {}
+  constructor(private http : HttpClient) {}
 
   login(model:any){
     return this.http.post(this.baseUrl+this.loginUrl,model)
@@ -54,11 +48,26 @@ export class AccountService {
     )
   }
 
+  register(model:any){
+    return this.http.post(this.baseUrl+this.registerUrl,model)
+    .pipe(
+      map((user:any)=>{
+        if(user){
+          localStorage.setItem("user",JSON.stringify(user));
+          this.currentUserSource.next(user);
+        }
+        
+      })
+    )
+  }
+
   setCurrentUser(user:User){
     this.currentUserSource.next(user);
   }
 
   logout(){
+    // remove the user from the local storage
+    // and set the observable value null
     localStorage.removeItem('user');
     this.currentUserSource.next(null);
   }
