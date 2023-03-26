@@ -1,6 +1,8 @@
 ﻿using API.Data;
 using API.DTOs.Request;
+using API.DTOs.Response;
 using API.Entities;
+using API.Services.TokenService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,13 +16,15 @@ namespace API.Controllers
     public class AccountController : BaseApiController
     {
         private DataContext _context;
+        private ITokenService _tokenService;
 
-        public AccountController(DataContext context )
+        public AccountController(DataContext context,ITokenService tokenService )
         {
             _context = context;
+            _tokenService = tokenService;
         }
         [HttpPost("register")]
-        public async Task<ActionResult<AppUser>> Register(RegisterDto registerDto)
+        public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
             if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
             using var hmac = new HMACSHA512();
@@ -32,11 +36,15 @@ namespace API.Controllers
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return user;
+            return new UserDto
+            {
+                Username = user.UserName,
+                Token = _tokenService.CreateToken(user)
+            };
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<AppUser>>Login(LoginDto loginDto)
+        public async Task<ActionResult<UserDto>>Login(LoginDto loginDto)
         {
             var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName.ToLower() == loginDto.Username.ToLower());
             if(user == null)
@@ -53,7 +61,11 @@ namespace API.Controllers
             {
                 if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid Password");
             }
-            return user;
+            return new UserDto
+            {
+                Username = user.UserName,
+                Token = _tokenService.CreateToken(user)
+            };
         }
 
         // helper function
